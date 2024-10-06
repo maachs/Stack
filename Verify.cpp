@@ -6,23 +6,23 @@ int VerifyStack(Stack_t* stk)
     {
         stk->error_code = STK_ERROR;
     }
-
-    if (stk->data == NULL)
+    else if (stk->data == NULL)
     {
-        stk->error_code = CTOR_ERROR;
+        stk->error_code = DATA_ERROR;
     }
-
-    if (stk->data == NULL)
+    else if (stk->canary1 - CANARY < EPS || stk->canary2 - CANARY < EPS)
     {
-        stk->error_code = PUSH_ERROR;
+        stk->error_code = CANARY_ERROR;
     }
-
-    if (stk->data == NULL)
+    else if (stk->data[-1] - CANARY < EPS || stk->data[stk->capacity] - CANARY < EPS)
     {
-        stk->error_code = POP_ERROR;
+        stk->error_code = DATA_CANARY_ERROR;
     }
-
-    if (stk->size <= 0)
+    else
+    {
+        return SUCCESS;
+    }
+    /*if (stk->size <= 0)
     {
         stk->error_code = SIZE_ERROR;
     }
@@ -30,7 +30,7 @@ int VerifyStack(Stack_t* stk)
     if (stk->capacity <= 0)
     {
         stk->error_code = CAPACITY_ERROR;
-    }
+    }*/
 
     return stk->error_code;
 }

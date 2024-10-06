@@ -3,14 +3,21 @@
 ErrorCode StackCtor(Stack_t* stk)
 {
     assert(stk);
-    stk->data = (StackElem*)calloc(CAPACITY_MIN, sizeof(StackElem));
+    stk->data = (StackElem*)calloc(CAPACITY_MIN, sizeof(StackElem)) + 1;
+
+    #ifdef DEBUG
+        stk->canary2 = CANARY;
+    #endif
 
     stk->size = 0;
     stk->capacity = CAPACITY_MIN;
 
     PoisonData(stk);
 
-    //VERIFY_STACK(stk);
+    stk->data[-1] = CANARY;
+    stk->data[CAPACITY_MIN] = CANARY;
+
+    VERIFY_STACK(stk);
 
     return SUCCESS;
 }
@@ -28,8 +35,8 @@ void StackDtor(Stack_t* stk)
 
 void PoisonData(Stack_t* stk)
 {
-    for (int i = stk->size; i < stk->capacity; i++)
+    for (int elem = stk->size; elem < stk->capacity; elem++)
     {
-        stk->data[i] = POISON;
+        stk->data[elem] = POISON;
     }
 }

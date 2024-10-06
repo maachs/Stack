@@ -29,14 +29,8 @@ void PrintError(Stack_t* stk)
 {
     switch (stk->error_code)
     {
-        case CTOR_ERROR:
-            printf("Ctor ERROR\n");
-            break;
-        case PUSH_ERROR:
-            printf("Push ERROR\n");
-            break;
-        case POP_ERROR:
-            printf("Pop ERROR\n");
+        case DATA_ERROR:
+            printf("Data == NULL\n");
             break;
         case SIZE_ERROR:
             printf("Size ERROR\n");
@@ -48,7 +42,7 @@ void PrintError(Stack_t* stk)
             printf("Stk = NULL\n");
             break;
         default:
-            printf("All Done\n"); // easy mistake
+            printf("unspecified error\n");
     }
 }
 
