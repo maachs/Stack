@@ -1,0 +1,17 @@
+
+Verify.h
+Verify.cpp
+Push_Pop.h
+Push_Pop.cpp
+*.o
+*.exe
+*.log
+*.dmp
+Ctor_Dtor.cpp
+Ctor_Dtor.h
+Ctor_Dtor.cpp
+Ctor_Dtor.h
+Dump.cpp
+Dump.h
+Push_Pop.cpp
+Push_Pop.h
