@@ -17,8 +17,8 @@ ErrorCode StackPush(Stack_t* stk, StackElem value);
 
 ErrorCode StackPop(Stack_t* stk, StackElem* pop);
 
-ErrorCode ReallocPush(Stack_t* stk);
+void ReallocPush(Stack_t* stk);
 
-ErrorCode ReallocPop(Stack_t* stk);
+void ReallocPop(Stack_t* stk);
 
 #endif

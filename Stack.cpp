@@ -30,8 +30,6 @@ ErrorCode StackCtor(Stack_t* stk)
 void StackDtor(Stack_t* stk)
 {
     assert(stk);
-    CALC_HASH;
-    VERIFY_STACK(stk);
 
     free(stk->data);
     stk->data = NULL;
@@ -57,6 +55,7 @@ ErrorCode StackPush(Stack_t* stk, StackElem value)
 
     if (stk->size == stk->capacity - 1)
     {
+        printf("  ");
         ReallocPush(stk);
     }
 
@@ -69,13 +68,15 @@ ErrorCode StackPush(Stack_t* stk, StackElem value)
 
     return SUCCESS;
 }
-ErrorCode ReallocPush(Stack_t* stk)
+void ReallocPush(Stack_t* stk)
 {
-    stk->data = (StackElem*) realloc(stk->data - 1, stk->size * PUSH_STEP * sizeof(StackElem) + 2) + 1;
+    assert(stk);
+
+    stk->data = (StackElem*) realloc(stk->data - 1, stk->capacity * PUSH_STEP * sizeof(StackElem) + 2) + 1;
 
     if (stk->data == NULL)
     {
-        return CALLOC_ERROR;
+        stk->error_code = CALLOC_ERROR;
     }
 
     stk->data[stk->capacity] = POISON;
@@ -85,9 +86,6 @@ ErrorCode ReallocPush(Stack_t* stk)
     PoisonData(stk);
 
     stk->data[stk->capacity] = CANARY;
-
-    return SUCCESS;
-
 }
 
 ErrorCode StackPop(Stack_t* stk, StackElem* value)
@@ -104,8 +102,10 @@ ErrorCode StackPop(Stack_t* stk, StackElem* value)
 
     stk->data[stk->size + 1] = POISON;
 
-    if (stk->size == stk->capacity / 4)
+    if ((stk->size == stk->capacity / 4) && (stk->size > CAPACITY_MIN))
     {
+        printf("%d\n", stk->size);
+        printf("%d\n", stk->capacity);
         ReallocPop(stk);
     }
 
@@ -117,21 +117,20 @@ ErrorCode StackPop(Stack_t* stk, StackElem* value)
     return SUCCESS;
 }
 
-ErrorCode ReallocPop(Stack_t* stk)
+void ReallocPop(Stack_t* stk)
 {
     stk->data = (StackElem*)realloc(stk->data - 1, (stk->capacity / POP_STEP) * sizeof(StackElem)) + 1;
 
     if (stk->data == NULL)
     {
-        return CALLOC_ERROR;
+        stk->error_code = CALLOC_ERROR;
     }
 
     stk->capacity /= 2;
 
     stk->data[stk->capacity] = CANARY;
-
-    return SUCCESS;
 }
+
 uint64_t CalcHash (char* data, int size)
 {
     uint64_t hash = 5381;
@@ -146,42 +145,38 @@ uint64_t CalcHash (char* data, int size)
 
 void StackDump(Stack_t* stk, const char* file, const int line, const char* func)
 {
-    CALC_HASH;
-    VERIFY_STACK(stk);
-    uint64_t temp1 = CalcHash((char*) (stk->data - 1), sizeof(double) * stk->size);
-    fprintf(stderr, "temp2 %lx\n", (unsigned long int)temp1);
-    fprintf(stderr, "\nStk_t [0x%p]\n", stk);
+    fprintf(stdout, "\nStk_t [0x%p]\n", stk);
 
-    fprintf(stderr, "called from %s : %d (%s)\n", file, line, func);
+    fprintf(stdout, "called from %s : %d (%s)\n", file, line, func);
 
-    fprintf(stderr, "named \"%s\" born at %s:%d\n", stk->name, stk->file, stk->line);
+    fprintf(stdout, "named \"%s\" born at %s:%d\n", stk->name, stk->file, stk->line);
 
     if (stk == NULL)
     {
-        fprintf(stderr, "Dump stk = null");
+        fprintf(stdout, "Dump stk = null");
     }
     else
     {
         printf("____CANARIES____\n");
-        fprintf(stderr, "struct canary 1 = %lx\n", (unsigned long int)stk->canary1);
-        fprintf(stderr, "struct canary 2 = %lx\n", (unsigned long int)stk->canary2);
+        fprintf(stdout, "struct canary 1 = %lx\n", (unsigned long int)stk->canary1);
+        fprintf(stdout, "struct canary 2 = %lx\n", (unsigned long int)stk->canary2);
 
-        fprintf(stderr, "data canary 1   = %lx\n", (unsigned long int)stk->data[-1]);
-        fprintf(stderr, "data canary 2   = %lx\n", (unsigned long int)stk->data[stk->capacity]);
+        fprintf(stdout, "data canary 1   = %lx\n", (unsigned long int)stk->data[-1]);
+        fprintf(stdout, "data canary 2   = %lx\n", (unsigned long int)stk->data[stk->capacity]);
 
         printf("___HASH___\n");
-        fprintf(stderr, "struct hash = %lx\n", (unsigned long int)stk->struct_hash);
-        fprintf(stderr, "data hash   = %lx\n", (unsigned long int)stk->data_hash);
+        fprintf(stdout, "struct hash = %lx\n", (unsigned long int)stk->struct_hash);
+        fprintf(stdout, "data hash   = %lx\n", (unsigned long int)stk->data_hash);
 
-        fprintf(stderr, "buffer struct hash = %lx\n", (unsigned long int)stk->buffer_struct_hash);
-        fprintf(stderr, "buffer data hash   = %lx\n", (unsigned long int)stk->buffer_data_hash);
+        fprintf(stdout, "buffer struct hash = %lx\n", (unsigned long int)stk->buffer_struct_hash);
+        fprintf(stdout, "buffer data hash   = %lx\n", (unsigned long int)stk->buffer_data_hash);
 
         if (stk->data != NULL)
         {
             printf("data\n{\n");
             for (int elem = 0; elem < stk->capacity + 2; elem++)
             {
-                fprintf(stderr, "   [%d] = %lg\n", elem - 1, stk->data[elem - 1]);
+                fprintf(stdout, "   [%d] = %lg\n", elem - 1, stk->data[elem - 1]);
             }
             printf("}\n");
         }
@@ -200,9 +195,6 @@ void StackDump(Stack_t* stk, const char* file, const int line, const char* func)
 
 void PrintError(Stack_t* stk)
 {
-    assert(stk->error_code);
-    CALC_HASH;
-    VERIFY_STACK(stk);
     switch (stk->error_code)
     {
         case CAPACITY_EQUAL_SIZE:

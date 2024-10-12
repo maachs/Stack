@@ -1,6 +1,7 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+//#include <TXlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -25,15 +26,15 @@ struct Stack_t
         const int   line;
     #endif
 
-    uint64_t struct_hash;
-    uint64_t data_hash;
-    uint64_t buffer_data_hash;
-    uint64_t buffer_struct_hash;
-
     StackElem* data;
     int size;
     int capacity;
     int error_code;
+
+    uint64_t struct_hash;
+    uint64_t data_hash;
+    uint64_t buffer_data_hash;
+    uint64_t buffer_struct_hash;
 
     #ifdef DEBUG
         StackElem canary2;
@@ -70,8 +71,8 @@ enum ErrorCode
             StackDtor(var1);                                      \
             assert(0);                                            \
         }
-    #define CALC_HASH                                                                                                                                                          \
-            /*stk->buffer_struct_hash = CalcHash((char*) stk + sizeof(StackElem) + sizeof(char*) * 2 + sizeof(int) + sizeof(uint64_t) * 4, sizeof(StackElem*) + sizeof(int) * 3);*/\
+    #define CALC_HASH                                                                                                                                   \
+            stk->buffer_struct_hash = CalcHash((char*) stk + sizeof(StackElem) + sizeof(char*) * 2 + sizeof(int), sizeof(StackElem*) + sizeof(int) * 3);\
             stk->buffer_data_hash   = CalcHash((char*) (stk->data), sizeof(double) * stk->capacity);
 #else
     #define INIT(var)
